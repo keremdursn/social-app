@@ -13,7 +13,8 @@ services:
       - appnetwork
   
   appGateway:
-    image: cosmtrek/air:latest
+    build:
+      context: ./appGateway
     container_name: gateway
     restart: always
     working_dir: /app
@@ -38,9 +39,23 @@ services:
       - "${POSTGRES_PORT}:5432"
     networks:
       - appnetwork
+    volumes:
+      - postgre_data:/var/lib/postgresql/data
+  
+  portainer:
+    image: portainer/portainer-ce
+    ports: 
+      - "9000:9000"
+    volumes:
+      - //./pipe/docker_engine://./pipe/docker_engine
+      - portainer_data:/data
+    restart: always
+    networks:
+      - appnetwork
 
 volumes:
   postgre_data:
+  portainer_data:
 
 networks:
   appnetwork:
