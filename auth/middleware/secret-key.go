@@ -1,3 +1,5 @@
 package middleware
 
-var mySigningKey = []byte("mysupersecretkey")
+import "os"
+
+var mySigningKey = []byte(os.Getenv("JWT_KEY"))

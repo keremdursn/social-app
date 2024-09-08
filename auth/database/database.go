@@ -1,12 +1,12 @@
 package database
 
 import (
-	"auth/config"
 	"auth/models"
 	"fmt"
 	"log"
-	"strconv"
+	"os"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -19,14 +19,17 @@ type Dbinstance struct {
 var DB Dbinstance
 
 func ConnectDb() {
-	p := config.Config("POSTGRES_PORT")
-	port, err := strconv.ParseUint(p, 10, 32)
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal(err)
 	}
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=Asia/Shanghai",
-		config.Config("POSTGRES_HOST"), config.Config("POSTGRES_USER"),
-		config.Config("POSTGRES_PASSWORD"), config.Config("POSTGRES_DB"), port)
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s",
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_DB"),
+		os.Getenv("POSTGRES_PORT"))
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
@@ -38,7 +41,11 @@ func ConnectDb() {
 	log.Println("connected success")
 	db.Logger = logger.Default.LogMode(logger.Info)
 	log.Println("running migrations")
-	db.AutoMigrate(models.User{}, models.Session{})
+	err = db.AutoMigrate(models.User{}, models.Session{})
+	if err != nil {
+		log.Fatal("error to migrate step")
+	}
+
 	DB = Dbinstance{
 		Db: db,
 	}
