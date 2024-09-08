@@ -1,9 +1,15 @@
 package router
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"auth/controllers"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func User(app *fiber.App) {
 	user := app.Group("/user")
 
-	user.Post("/")
+	user.Post("/signup", controllers.SignUp)
+	user.Post("/login", controllers.LogIn)
+	user.Get("/logout", controllers.LogOut)
 }

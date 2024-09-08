@@ -84,6 +84,26 @@ func LogIn(c *fiber.Ctx) error {
 	err = db.Create(&session).Error
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Session oluşturulamadı")
-	} 
+	}
 	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Login success", "data": user, "token": token})
+}
+
+func LogOut(c *fiber.Ctx) error {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ERROR : L-O-1"})
+	}
+
+	// Session'ı veritabanından sil
+	result := database.DB.Db.Exec("DELETE FROM sessions WHERE user_id = ?", user.ID)
+	if result.Error != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "ERROR : L-O-2"})
+	}
+
+	// Eğer bir satır silindiyse, logout işlemi başarılıdır
+	if result.RowsAffected == 0 {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "No active session found"})
+	}
+
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Logout successful"})
 }
