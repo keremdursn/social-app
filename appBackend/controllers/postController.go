@@ -90,6 +90,14 @@ func UpdatePost(c *fiber.Ctx) error {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "you are not allowed to update this post."})
 	}
 
+	//Cloudinaryden image silme eklendiğinde burayı aç
+	// for _, oldImageID := range post.ImageIDs {
+	//     err := database.DeleteFromCloudinary(oldImageID)
+	//     if err != nil {
+	//         return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to delete old images from Cloudinary"})
+	//     }
+	// }
+
 	// Resimleri güncelle
 	form, err := c.MultipartForm()
 	if err != nil {
