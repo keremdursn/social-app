@@ -250,13 +250,13 @@ func UpdatePhoto(c *fiber.Ctx) error {
 	}
 	defer openedFile.Close()
 
-	fileBytes, err := io.ReadAll(openedFile)
+	imageBytes, err := io.ReadAll(openedFile)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to read file"})
 	}
 
 	// Cloudinary'e yükleme
-	imageID, imageURL, err := database.ConnectToCloudinary(fileBytes)
+	imageID, imageURL, err := database.ConnectToCloudinary(imageBytes)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to upload to Cloudinary"})
 	}
