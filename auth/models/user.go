@@ -7,7 +7,8 @@ type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Mail     string `json:"mail"`
-	PhotoUrl string `json:"image"`
+	PPId     string `json:"image"`
+	PPUrl    string `json:"ppurl"`
 }
 
 type Login struct {

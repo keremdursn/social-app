@@ -5,6 +5,7 @@ import (
 	"auth/helpers"
 	"auth/middleware"
 	"auth/models"
+	"io"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -110,9 +111,9 @@ func LogOut(c *fiber.Ctx) error {
 
 func ChangePassword(c *fiber.Ctx) error {
 	// Kullanıcıyı token ile doğrula
-	user, ok := c.Locals("user").(models.User)
-	if !ok {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ERROR : L-O-1"})
+	user, err := middleware.TokenControl(c)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
 	// Şifre değişiklik isteğini parse et
@@ -149,13 +150,13 @@ func ChangePassword(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Password changed successfully"})
 }
 
-func DeleteAccount(c *fiber.Ctx) error  {
+func DeleteAccount(c *fiber.Ctx) error {
 	user, err := middleware.TokenControl(c)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
-	db := database.DB.Db	
+	db := database.DB.Db
 
 	err = db.Delete(&user).Error
 	if err != nil {
@@ -184,11 +185,11 @@ func GetUserByID(c *fiber.Ctx) error {
 func UpdateAccount(c *fiber.Ctx) error {
 	user, err := middleware.TokenControl(c)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "server errorrrrr"})
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
 	db := database.DB.Db
-	
+
 	//İstekten kullanıcı ID sini al
 	// id := c.Params("id")
 
@@ -226,5 +227,47 @@ func UpdateAccount(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "server error!"})
 	}
 	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "user data has been successfully updated "})
+}
 
+func UpdatePhoto(c *fiber.Ctx) error {
+	user, err := middleware.TokenControl(c)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": ""})
+	}
+
+	db := database.DB.Db
+
+	//Kullanıcıdan profil fotoğrafı al
+	file, err := c.FormFile("profile_image")
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to upload file"})
+	}
+
+	// Dosyayı açma ve okuma
+	openedFile, err := file.Open()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to open file"})
+	}
+	defer openedFile.Close()
+
+	fileBytes, err := io.ReadAll(openedFile)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to read file"})
+	}
+
+	// Cloudinary'e yükleme
+	imageID, imageURL, err := database.ConnectToCloudinary(fileBytes)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to upload to Cloudinary"})
+	}
+
+	user.PPId = imageID
+	user.PPUrl = imageURL
+
+	err = db.Save(&user).Error
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update user profile photo"})
+	}
+
+	return c.Status(200).JSON(fiber.Map{"status": "error", "message": "Photo uploaded successfully", "ppurl": imageURL})
 }
