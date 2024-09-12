@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-//TODO: , update post, deletepost, getallpost, getuserspost
+//TODO: , getallpost, getuserspost
 
 func CreatePost(c *fiber.Ctx) error {
 	user, err := middleware.TokenControl(c)
@@ -90,13 +90,15 @@ func UpdatePost(c *fiber.Ctx) error {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "you are not allowed to update this post."})
 	}
 
-	//Cloudinaryden image silme eklendiğinde burayı aç
-	// for _, oldImageID := range post.ImageIDs {
-	//     err := database.DeleteFromCloudinary(oldImageID)
-	//     if err != nil {
-	//         return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to delete old images from Cloudinary"})
-	//     }
-	// }
+	oldImageIDs := post.ImageIDs
+
+	// Eski resimleri sil
+	if len(oldImageIDs) > 0 {
+		err = database.DeleteFromCloudinary(oldImageIDs)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to delete old images from Cloudinary"})
+		}
+	}
 
 	// Resimleri güncelle
 	form, err := c.MultipartForm()
@@ -142,4 +144,59 @@ func UpdatePost(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update post", "data": err})
 	}
 	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Post updated successfully", "data": post})
+}
+
+func DeletePost(c *fiber.Ctx) error {
+	user, err := middleware.TokenControl(c)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	}
+	db := database.DB.Db
+
+	id := c.Params("id")
+	var post models.Post
+
+	err = db.Where("id = ?", id).First(&post).Error
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"Status": "Error", "Message": "Post not found"})
+	}
+
+	//Kullanıcı Postun Sahibi mi kontrolü
+	if post.UserID != user.ID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "You are not allowed to delete this post."})
+	}
+
+	post.IsActive = false
+
+	err = db.Save(&post).Error
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update post"})
+	}
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Post deleted successfully", "data": post})
+}
+
+func GetAllPost(c *fiber.Ctx) error {
+	db := database.DB.Db
+	var posts []models.Post
+	err := db.Preload("User").Where("is_active = ?", true).Order("id DESC").Find(&posts).Error
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to get posts"})
+	}
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Posts retrieved successfully", "data": posts})
+}
+
+func GetPostByUserID(c *fiber.Ctx) error {
+	user, err := middleware.TokenControl(c)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	}
+
+	db := database.DB.Db
+	var posts []models.Post
+
+	err = db.Preload("User").Where("user_id = ? AND is_active = ?", user.ID, true).Order("id DESC").Find(&posts).Error
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to get posts"})
+	}
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Posts retrieved successfully", "data": posts})
 }

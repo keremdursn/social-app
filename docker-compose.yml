@@ -2,31 +2,31 @@ version: "3.8"
 
 services:
 
-  nginx:
-    image: nginx:latest
-    container_name: nginx_gateway
-    ports:
-      - "8080:80"    # Nginx'in 8080 portunu host ile bağla
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf   # Kendi nginx.conf dosyanı mount et
-    networks:
-      - appnetwork
+  # nginx:
+  #   image: nginx:latest
+  #   container_name: nginx_gateway
+  #   ports:
+  #     - "8080:80"    # Nginx'in 8080 portunu host ile bağla
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf   # Kendi nginx.conf dosyanı mount et
+  #   networks:
+  #     - appnetwork
   
-  appGateway:
-    build:
-      context: ./appGateway
-    container_name: gateway
-    restart: always
-    working_dir: /app
-    volumes:
-      - ./appGateway:/app
-    ports:
-      - "9095:9095"
-    depends_on:
-      - auth
-      - backend
-    networks:
-      - appnetwork
+  # appGateway:
+  #   build:
+  #     context: ./appGateway
+  #   container_name: gateway
+  #   restart: always
+  #   working_dir: /app
+  #   volumes:
+  #     - ./appGateway:/app
+  #   ports:
+  #     - "9095:9095"
+  #   depends_on:
+  #     - auth
+  #     - backend
+  #   networks:
+  #     - appnetwork
 
   postgres:
     image: postgres
@@ -42,16 +42,16 @@ services:
     volumes:
       - postgre_data:/var/lib/postgresql/data
   
-  portainer:
-    image: portainer/portainer-ce
-    ports: 
-      - "9000:9000"
-    volumes:
-      - //./pipe/docker_engine://./pipe/docker_engine
-      - portainer_data:/data
-    restart: always
-    networks:
-      - appnetwork
+  # portainer:
+  #   image: portainer/portainer-ce
+  #   ports: 
+  #     - "9000:9000"
+  #   volumes:
+  #     - //./pipe/docker_engine://./pipe/docker_engine
+  #     - portainer_data:/data
+  #   restart: always
+  #   networks:
+  #     - appnetwork
 
 volumes:
   postgre_data:

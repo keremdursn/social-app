@@ -3,6 +3,7 @@ package database
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -68,9 +69,40 @@ func GetPhoto(image string) string {
 	var ctx = context.Background()
 	resp, err := cld.Admin.Asset(ctx, admin.AssetParams{PublicID: image})
 	if err != nil {
-		log.Println("image could not get:", err)	
+		log.Println("image could not get:", err)
 		panic(err)
 	}
 
 	return resp.SecureURL
+}
+
+func DeleteFromCloudinary(imageIDs []string) error {
+	// Çevresel değişkenleri yükle
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Println("error load .env file")
+		return err
+	}
+	// Cloudinary kimlik bilgilerini al
+	cloudinaryName := os.Getenv("CLOUDINARY_CLOUD_NAME")
+	apiKey := os.Getenv("CLOUDINARY_API_KEY")
+	apiSecret := os.Getenv("CLOUDINARY_API_SECRET")
+
+	// Cloudinary istemcisini oluştur
+	cld, err := cloudinary.NewFromParams(cloudinaryName, apiKey, apiSecret)
+	if err != nil {
+		log.Println("cloudinary client could not be created.")
+		panic(err)
+	}
+
+	ctx := context.Background()
+	for _, imageID := range imageIDs {
+		_, err := cld.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: imageID})
+		if err != nil {
+			return fmt.Errorf("failed to delete image %s: %w", imageID, err)
+		}
+	}
+
+	log.Println("image successfully deleted from Cloudinary")
+	return nil
 }
