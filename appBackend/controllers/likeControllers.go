@@ -18,7 +18,7 @@ func LikePost(c *fiber.Ctx) error {
 
 	// Bodyden post verilerini al
 	var likePost models.Like
-	if err := c.BodyParser(&likePost) ;err != nil {
+	if err := c.BodyParser(&likePost); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
 	}
 
@@ -52,22 +52,22 @@ func LikePost(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update post like count"})
 	}
-	return c.Status(200).JSON(fiber.Map{"status":  "success", "message": "Post liked successfully", "like": likePost})
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Post liked successfully", "like": likePost})
 }
 
-func GetBackLike(c *fiber.Ctx) error  {
+func GetBackLike(c *fiber.Ctx) error {
 	user, err := middleware.TokenControl(c)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
-	
+
 	db := database.DB.Db
 
 	var like models.Like
 	if err := c.BodyParser(&like); err != nil {
-		return nil
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
 	}
-	
+
 	postID := like.PostID
 	userID := user.ID
 
@@ -82,13 +82,13 @@ func GetBackLike(c *fiber.Ctx) error  {
 	var controlLike models.Like
 	err = db.Where("post_id = ? AND user_id = ?", postID, userID).First(&controlLike).Error
 	if err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Like not found"})
+		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Post like not found"})
 	}
 
 	//Beğeniyi sil
 	err = db.Delete(&controlLike).Error
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to remove like"})
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to remove post like"})
 	}
 
 	//Postun beğeni sayısını güncelle

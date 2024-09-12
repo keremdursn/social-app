@@ -112,6 +112,50 @@ func LikeCommand(c *fiber.Ctx) error {
 
 }
 
+func GetBackLikeCommand(c *fiber.Ctx) error {
+	user, err := middleware.TokenControl(c)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	}
+	db := database.DB.Db
+
+	var likeComment models.LikeCommand
+	if err := c.BodyParser(&likeComment); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	commentID := likeComment.CommentID
+	userID := user.ID
+
+	//Commenti bul
+	var comment models.Comment
+	err = db.Where("comment_id = ? ", commentID).First(&comment).Error
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Comment not found"})
+	}
+
+	//Like controlü yap
+	var controlLike models.LikeCommand
+	err = db.Where("comment_id = ? AND user_id = ?", commentID, userID).First(&controlLike).Error
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Comment like not found"})
+	}
+
+	//Like ı sil
+	err = db.Delete(&controlLike).Error
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to remove comment like"})
+	}
+
+	//Like sayısını güncelle
+	comment.LikeCount--
+	err = db.Save(&comment).Error
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update comment like count"})
+	}
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Like removed successfully"})
+}
+
 func AnswerComment(c *fiber.Ctx) error {
 	user, err := middleware.TokenControl(c)
 	if err != nil {
@@ -167,5 +211,26 @@ func GetAllCommentsByPostID(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Comments fetched successfully", "data": comments, "user": user})
 }
 
+// delete answer eklenecek
+func DeleteAnswer(c *fiber.Ctx) error {
+	user, err := middleware.TokenControl(c)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	}
+	db := database.DB.Db
 
-//delete answer eklenecek 
+	answerID := c.Params("answer_id")
+
+	var answer models.AnswerCommand
+
+	err = db.Where("answer_id = ? AND user_id = ?", answerID, user.ID).Error
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Answer not found or not authorized to delete"})
+	}
+
+	err = db.Delete(&answer).Error
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to delete answer"})
+	}
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Answer archived successfully"})
+}

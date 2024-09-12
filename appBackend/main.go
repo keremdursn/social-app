@@ -13,5 +13,6 @@ func main() {
 	app := fiber.New()
 	router.User(app)
 	router.Post(app)
+	router.Comment(app)
 	app.Listen(":8080")
 }
