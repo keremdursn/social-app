@@ -28,6 +28,20 @@ services:
   #   networks:
   #     - appnetwork
 
+  appbackend:
+    build:
+      context: ./appbackend
+    container_name: appbackend
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./appbackend:/app
+      - ./.env:/app/.env
+    ports:
+      - "8080:8080"
+    networks:
+      - appnetwork
+
   postgres:
     image: postgres
     restart: always
