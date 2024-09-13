@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"auth/database"
-	"auth/middleware"
-	"auth/models"
+	"post/database"
+	"post/middleware"
+	"post/models"
 	"io"
 
 	"github.com/gofiber/fiber/v2"

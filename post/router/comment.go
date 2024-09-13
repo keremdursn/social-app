@@ -1,7 +1,7 @@
 package router
 
 import (
-	"auth/controllers"
+	"post/controllers"
 
 	"github.com/gofiber/fiber/v2"
 )

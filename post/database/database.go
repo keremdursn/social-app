@@ -1,7 +1,7 @@
 package database
 
 import (
-	"auth/models"
+	"post/models"
 	"fmt"
 	"log"
 	"os"
@@ -42,8 +42,6 @@ func ConnectDb() {
 	db.Logger = logger.Default.LogMode(logger.Info)
 	log.Println("running migrations")
 	err = db.AutoMigrate(
-		models.User{}, 
-		models.Session{}, 
 		models.Post{}, 
 		models.Like{},
 		models.Comment{},

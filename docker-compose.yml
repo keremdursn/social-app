@@ -28,17 +28,31 @@ services:
   #   networks:
   #     - appnetwork
 
-  appbackend:
+  auth:
     build:
-      context: ./appbackend
-    container_name: appbackend
-    restart: always
+      context: ./auth
+    container_name: auth
+    restart: no
     working_dir: /app
     volumes:
-      - ./appbackend:/app
-      - ./.env:/app/.env
+      - ./auth:/app
+      - ./.emv:/app/.env
     ports:
       - "8080:8080"
+    networks:
+      - appnetwork
+
+  post:
+    build:
+      context: ./post
+    container_name: post
+    restart: no
+    working_dir: /app
+    volumes:
+      - ./post:/app
+      - ./.env:/app/.env
+    ports:
+      - "8081:8081"
     networks:
       - appnetwork
 
@@ -51,10 +65,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports: 
       - "${POSTGRES_PORT}:5432"
-    networks:
-      - appnetwork
     volumes:
       - postgre_data:/var/lib/postgresql/data
+    networks:
+      - appnetwork
   
   # portainer:
   #   image: portainer/portainer-ce
@@ -79,7 +93,7 @@ services:
 
 volumes:
   postgre_data:
-  portainer_data:
+  # portainer_data:
 
 networks:
   appnetwork:

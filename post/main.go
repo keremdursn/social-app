@@ -1,8 +1,8 @@
 package main
 
 import (
-	"auth/database"
-	"auth/router"
+	"post/database"
+	"post/router"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -11,8 +11,7 @@ func main() {
 	database.ConnectDb()
 
 	app := fiber.New()
-	router.User(app)
 	router.Post(app)
 	router.Comment(app)
-	app.Listen(":8080")
+	app.Listen(":8081")
 }
