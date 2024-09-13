@@ -32,7 +32,7 @@ func CreateQueue(ch *amqp.Channel, queueName string) amqp.Queue {
 }
 
 // Mesaj gönderme işlemi
-func PublishMessage(ch *amqp.Channel, queueName, message string) {
+func PublishMessage(ch *amqp.Channel, queueName, message string) error 	{
 	q := CreateQueue(ch, queueName)
 
 	err := ch.Publish(
@@ -41,13 +41,14 @@ func PublishMessage(ch *amqp.Channel, queueName, message string) {
 		false,  // Mandatory
 		false,  // Immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
+			ContentType: "application/json",
 			Body:        []byte(message),
 		})
 	if err != nil {
 		log.Fatalf("Failed to publish a message: %v", err)
 	}
-	log.Printf("Message sent to queue %s: %s", q.Name, message)
+	log.Printf("Message sent to queue %s: Message: %s", q.Name, message)
+	return nil
 }
 
 func ConsumeMessages(ch *amqp.Channel, queueName string) {
