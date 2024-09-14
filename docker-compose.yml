@@ -29,9 +29,8 @@ services:
   #     - appnetwork
 
   auth:
-    build:
-      context: ./auth
     container_name: auth
+    image: cosmtrek/air:v1.44.0
     restart: no
     working_dir: /app
     volumes:
@@ -43,8 +42,7 @@ services:
       - appnetwork
 
   post:
-    build:
-      context: ./post
+    image: cosmtrek/air:v1.44.0
     container_name: post
     restart: no
     working_dir: /app

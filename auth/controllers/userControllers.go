@@ -6,6 +6,7 @@ import (
 	"auth/middleware"
 	"auth/models"
 	"io"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -63,7 +64,7 @@ func LogIn(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "failed", "message": "Username or password is wrong!"})
 	}
 
-	token, err := middleware.CreateToken(login.Username)
+	token, err := middleware.CreateToken(user.ID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Token oluşturulamadı")
 	}
@@ -74,14 +75,20 @@ func LogIn(c *fiber.Ctx) error {
 	// IP adresini al
 	ip := c.IP()
 
+	var session models.Session
+	session.UserID = user.ID
+	session.Token = token
+	session.Expiry = expiry
+	session.IP = ip
+
 	// Oturumu veritabanına kaydet
-	session := models.Session{
-		UserID:   int(user.ID),
-		Token:    token,
-		Expiry:   expiry,
-		IP:       ip,
-		IsActive: true,
-	}
+	// session := models.Session{
+	// 	UserID:   user.ID,
+	// 	Token:    token,
+	// 	Expiry:   expiry,
+	// 	IP:       ip,
+	// 	IsActive: true,
+	// }
 	err = db.Create(&session).Error
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Session oluşturulamadı")
@@ -94,18 +101,20 @@ func LogOut(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
+	db := database.DB.Db
+	var session models.Session
 
+	// err = db.Where("user_id = ? ", user.ID).First(&session).Error
+	// if err != nil {
+	// 	return c.Status(500).JSON(fiber.Map{"status": "error", "message": "bulamadi"})
+	// }
+	session.IsActive = false
+	log.Println("buraya bak**********************", session)
 	// Session'ı veritabanından sil
-	result := database.DB.Db.Exec("DELETE FROM sessions WHERE user_id = ?", user.ID)
-	if result.Error != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "ERROR : L-O-2"})
+	err = db.Raw("DELETE FROM sessions WHERE user_id= ?", user.ID).Scan(&session).Error
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "silemedi"})
 	}
-
-	// Eğer bir satır silindiyse, logout işlemi başarılıdır
-	if result.RowsAffected == 0 {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "No active session found"})
-	}
-
 	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Logout successful"})
 }
 
@@ -187,6 +196,7 @@ func UpdateAccount(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
+	log.Println("User ID:", user.ID)
 
 	db := database.DB.Db
 
@@ -211,6 +221,8 @@ func UpdateAccount(c *fiber.Ctx) error {
 	name := c.FormValue("name")
 	surname := c.FormValue("surname")
 	username := c.FormValue("username")
+	email := c.FormValue("email")
+	
 
 	if len(name) != 0 {
 		user.Name = name
@@ -221,6 +233,10 @@ func UpdateAccount(c *fiber.Ctx) error {
 	if len(username) != 0 {
 		user.Username = username
 	}
+	if len(email) != 0 {
+		user.Mail = email
+	}
+	
 
 	err = db.Save(&user).Error
 	if err != nil {

@@ -6,9 +6,9 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-func CreateToken(userID string) (string, error) {
+func CreateToken(userID int) (string, error) {
 	claims := jwt.MapClaims{
-		"user_id": userID,
+		"userID": userID,
 		"exp":     time.Now().Add(time.Hour * 72).Unix(), // 72 saat geçerli olacak
 	}
 

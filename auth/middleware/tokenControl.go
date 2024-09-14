@@ -3,6 +3,7 @@ package middleware
 import (
 	"auth/database"
 	"auth/models"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,6 +24,7 @@ func TokenControl(c *fiber.Ctx) (models.User, error) {
 		return models.User{}, c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Invalid token"})
 	}
+	log.Println(session.UserID)
 
 	var user models.User
 	if err := db.Where("id = ?", session.UserID).First(&user); err != nil {
