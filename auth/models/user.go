@@ -12,7 +12,7 @@ type User struct {
 }
 
 type Login struct {
-	Username string `json:"username"`
+	Mail string `json:"mail"`
 	Password string `json:"password"`
 }
 

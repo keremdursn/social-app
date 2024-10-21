@@ -55,7 +55,7 @@ func LogIn(c *fiber.Ctx) error {
 	}
 
 	//kullaniciyi db den bul
-	err = db.Where("username = ?", login.Username).First(&user).Error
+	err = db.Where("mail = ?", login.Mail).First(&user).Error
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "failed", "message": "Username or password is wrong!"})
 	}
@@ -64,7 +64,7 @@ func LogIn(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "failed", "message": "Username or password is wrong!"})
 	}
 
-	token, err := middleware.CreateToken(user.ID)
+	token, err := middleware.CreateToken(user.Mail)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Token oluşturulamadı")
 	}
@@ -97,8 +97,8 @@ func LogIn(c *fiber.Ctx) error {
 }
 
 func LogOut(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
@@ -111,7 +111,7 @@ func LogOut(c *fiber.Ctx) error {
 	session.IsActive = false
 	log.Println("buraya bak**********************", session)
 	// Session'ı veritabanından sil
-	err = db.Raw("DELETE FROM sessions WHERE user_id= ?", user.ID).Scan(&session).Error
+	err := db.Raw("DELETE FROM sessions WHERE user_id= ?", user.ID).Scan(&session).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "silemedi"})
 	}
@@ -120,8 +120,8 @@ func LogOut(c *fiber.Ctx) error {
 
 func ChangePassword(c *fiber.Ctx) error {
 	// Kullanıcıyı token ile doğrula
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
@@ -160,14 +160,14 @@ func ChangePassword(c *fiber.Ctx) error {
 }
 
 func DeleteAccount(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
 	db := database.DB.Db
 
-	err = db.Delete(&user).Error
+	err := db.Delete(&user).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "failed to delete user", "data:": nil})
 	}
@@ -175,16 +175,15 @@ func DeleteAccount(c *fiber.Ctx) error {
 }
 
 func GetUserByID(c *fiber.Ctx) error {
-	_, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
 
 	id := c.Params("id")
-	var user models.User
 
-	err = db.Where("id = ?", id).First(&user).Error
+	err := db.Where("id = ?", id).First(&user).Error
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"Status": "Error", "Message": "user not found"})
 	}
@@ -192,8 +191,8 @@ func GetUserByID(c *fiber.Ctx) error {
 }
 
 func UpdateAccount(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	log.Println("User ID:", user.ID)
@@ -221,8 +220,7 @@ func UpdateAccount(c *fiber.Ctx) error {
 	name := c.FormValue("name")
 	surname := c.FormValue("surname")
 	username := c.FormValue("username")
-	email := c.FormValue("email")
-	
+	mail := c.FormValue("mail")
 
 	if len(name) != 0 {
 		user.Name = name
@@ -233,12 +231,11 @@ func UpdateAccount(c *fiber.Ctx) error {
 	if len(username) != 0 {
 		user.Username = username
 	}
-	if len(email) != 0 {
-		user.Mail = email
+	if len(mail) != 0 {
+		user.Mail = mail
 	}
-	
 
-	err = db.Save(&user).Error
+	err := db.Save(&user).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "server error!"})
 	}
@@ -246,8 +243,8 @@ func UpdateAccount(c *fiber.Ctx) error {
 }
 
 func UpdatePhoto(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": ""})
 	}
 

@@ -6,12 +6,10 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-func CreateToken(userID int) (string, error) {
-	claims := jwt.MapClaims{
-		"userID": userID,
-		"exp":     time.Now().Add(time.Hour * 72).Unix(), // 72 saat geçerli olacak
-	}
-
+func CreateToken(userID string) (string, error) {
+	claims := jwt.MapClaims{}
+	claims["user_id"] = userID
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // Token 24 saat geçerli
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(mySigningKey)
 }

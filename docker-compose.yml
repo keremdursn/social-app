@@ -35,7 +35,7 @@ services:
     working_dir: /app
     volumes:
       - ./auth:/app
-      - ./.emv:/app/.env
+      - ./.env:/app/.env
     ports:
       - "8080:8080"
     networks:
