@@ -2,6 +2,7 @@ package router
 
 import (
 	"auth/controllers"
+	"auth/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -14,7 +15,7 @@ func User(app *fiber.App) {
 	user.Get("/logout", controllers.LogOut)
 	user.Put("/update-user", controllers.UpdateAccount)
 	user.Put("/update-photo", controllers.UpdatePhoto)
-	user.Put("/change-password", controllers.ChangePassword)
+	user.Put("/change-password", middleware.TokenControl(), controllers.ChangePassword)
 	user.Delete("/delete-account/", controllers.DeleteAccount)
 	user.Get("/:id", controllers.GetUserByID)
 }

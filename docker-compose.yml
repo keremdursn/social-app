@@ -65,7 +65,7 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgre_data:/var/lib/postgresql/data
-    networks:
+    networks: 
       - appnetwork
   
   # portainer:

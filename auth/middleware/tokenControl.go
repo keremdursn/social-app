@@ -3,7 +3,7 @@ package middleware
 import (
 	"auth/database"
 	"auth/models"
-	"time"
+	
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -20,30 +20,17 @@ func TokenControl() fiber.Handler {
 		token := authorizationHeader[7:]
 
 		var session models.Session
-		if err := db.Where("token = ? AND is_active = ?", token, true).First(&session).Error; err != nil {
+		if err := db.Where("token = ?", token).First(&session).Error; err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token"})
 		}
 
 		var user models.User
-		if err := db.Where("id = ?", session.UserID).First(&user); err != nil {
+		if err := db.Where("id = ?", session.UserID).First(&user).Error; err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "User not found",
 			})
 		}
-
-		// Token süresini kontrol et
-		if time.Now().Unix() > session.Expiry {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Token expired"})
-		}
-
-		// IP adresini kontrol et (opsiyonel, IP'yi kaydettiyseniz)
-		if session.IP != c.IP() {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "IP address mismatch"})
-		}
-
 		c.Locals("user", user)
 
 		return c.Next()

@@ -7,7 +7,6 @@ import (
 	"auth/models"
 	"io"
 	"log"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -69,17 +68,10 @@ func LogIn(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Token oluşturulamadı")
 	}
 
-	// Token'in son kullanma tarihini belirle (örneğin, 72 saat geçerlilik süresi)
-	expiry := time.Now().Add(72 * time.Hour).Unix()
-
-	// IP adresini al
-	ip := c.IP()
-
 	var session models.Session
 	session.UserID = user.ID
 	session.Token = token
-	session.Expiry = expiry
-	session.IP = ip
+
 
 	// Oturumu veritabanına kaydet
 	// session := models.Session{
@@ -108,8 +100,8 @@ func LogOut(c *fiber.Ctx) error {
 	// if err != nil {
 	// 	return c.Status(500).JSON(fiber.Map{"status": "error", "message": "bulamadi"})
 	// }
-	session.IsActive = false
-	log.Println("buraya bak**********************", session)
+	// session.IsActive = false
+	log.Println("---------------buraya bak-------------------", session)
 	// Session'ı veritabanından sil
 	err := db.Raw("DELETE FROM sessions WHERE user_id= ?", user.ID).Scan(&session).Error
 	if err != nil {
@@ -132,8 +124,8 @@ func ChangePassword(c *fiber.Ctx) error {
 	}
 
 	// Eski şifreyi doğrula
-	hashedOldPassword := helpers.HashPass(changePassword.OldPassword)
-	if hashedOldPassword != user.Password {
+	err := helpers.CheckPass(user.Password, changePassword.OldPassword)
+	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"status": "faild", "message": "Old password is incorrect"})
 	}
 
