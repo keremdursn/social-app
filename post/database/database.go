@@ -43,10 +43,10 @@ func ConnectDb() {
 	log.Println("running migrations")
 	err = db.AutoMigrate(
 		models.Post{}, 
-		models.Like{},
+		models.LikePost{},
 		models.Comment{},
-		models.LikeCommand{},
-		models.AnswerCommand{})
+		models.LikeComment{},
+		models.AnswerComment{})
 	if err != nil {
 		log.Fatal("error to migrate step")
 	}

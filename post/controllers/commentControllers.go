@@ -72,7 +72,7 @@ func LikeCommand(c *fiber.Ctx) error {
 	db := database.DB.Db
 
 	// Bodyden post verilerini al
-	var likeComment models.LikeCommand
+	var likeComment models.LikeComment
 	if err := c.BodyParser(&likeComment); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
 	}
@@ -88,7 +88,7 @@ func LikeCommand(c *fiber.Ctx) error {
 	}
 
 	// Like'ın daha önce yapılıp yapılmadığını kontrol et
-	var commentControl models.LikeCommand
+	var commentControl models.LikeComment
 	err = db.Where("comment_id = ? AND user_id = ?", commentID, userID).First(&commentControl).Error
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "You have already liked this comment"})
@@ -119,7 +119,7 @@ func GetBackLikeCommand(c *fiber.Ctx) error {
 	}
 	db := database.DB.Db
 
-	var likeComment models.LikeCommand
+	var likeComment models.LikeComment
 	if err := c.BodyParser(&likeComment); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
 	}
@@ -135,7 +135,7 @@ func GetBackLikeCommand(c *fiber.Ctx) error {
 	}
 
 	//Like controlü yap
-	var controlLike models.LikeCommand
+	var controlLike models.LikeComment
 	err = db.Where("comment_id = ? AND user_id = ?", commentID, userID).First(&controlLike).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Comment like not found"})
@@ -164,7 +164,7 @@ func AnswerComment(c *fiber.Ctx) error {
 	db := database.DB.Db
 
 	//body den answer isteğini al
-	var answerComment models.AnswerCommand
+	var answerComment models.AnswerComment
 	if err := c.BodyParser(&answerComment); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
 	}
@@ -221,7 +221,7 @@ func DeleteAnswer(c *fiber.Ctx) error {
 
 	answerID := c.Params("answer_id")
 
-	var answer models.AnswerCommand
+	var answer models.AnswerComment
 
 	err = db.Where("answer_id = ? AND user_id = ?", answerID, user.ID).Error
 	if err != nil {

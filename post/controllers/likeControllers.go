@@ -17,7 +17,7 @@ func LikePost(c *fiber.Ctx) error {
 	db := database.DB.Db
 
 	// Bodyden post verilerini al
-	var likePost models.Like
+	var likePost models.LikePost
 	if err := c.BodyParser(&likePost); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
 	}
@@ -33,7 +33,7 @@ func LikePost(c *fiber.Ctx) error {
 	}
 
 	// Like'ın daha önce yapılıp yapılmadığını kontrol et
-	var controlLike models.Like
+	var controlLike models.LikePost
 	err = db.Where("post_id = ? AND user_id = ?", postID, userID).First(&controlLike).Error
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "You have already liked this post"})
@@ -63,7 +63,7 @@ func GetBackLike(c *fiber.Ctx) error {
 
 	db := database.DB.Db
 
-	var like models.Like
+	var like models.LikePost
 	if err := c.BodyParser(&like); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
 	}
@@ -79,7 +79,7 @@ func GetBackLike(c *fiber.Ctx) error {
 	}
 
 	//Like kontrolü yap
-	var controlLike models.Like
+	var controlLike models.LikePost
 	err = db.Where("post_id = ? AND user_id = ?", postID, userID).First(&controlLike).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Post like not found"})

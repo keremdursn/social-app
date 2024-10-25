@@ -12,3 +12,11 @@ type Post struct {
 	CommentCount int      `json:"commentcount" gorm:"default:0"`
 	IsActive     bool     `gorm:"default:true"`
 }
+
+type LikePost struct {
+
+	UserID int  `json:"user_id"`
+	User   User `gorm:"foreignKey:UserID"`
+	PostID int  `json:"post_id"`
+	Post   Post `gorm:"foreignKey:PostID"`
+}
