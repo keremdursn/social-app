@@ -56,7 +56,7 @@ func LogIn(c *fiber.Ctx) error {
 	//kullaniciyi db den bul
 	err = db.Where("mail = ?", login.Mail).First(&user).Error
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "failed", "message": "Username or password is wrong!"})
+		return c.Status(400).JSON(fiber.Map{"status": "failed", "message": "Mail or password is wrong!"})
 	}
 
 	if err := helpers.CheckPass(user.Password, login.Password); err != nil {
@@ -163,7 +163,13 @@ func DeleteAccount(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "failed to delete user", "data:": nil})
 	}
-	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "account has been successfully deleted. "})
+
+	var session models.Session
+	err = db.Where("user_id = ?", user.ID).Delete(&session).Error
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "failed to delete session", "data:": nil})
+	}
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "account and session has been successfully deleted. "})
 }
 
 func GetUserByID(c *fiber.Ctx) error {

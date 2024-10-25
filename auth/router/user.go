@@ -12,10 +12,10 @@ func User(app *fiber.App) {
 
 	user.Post("/signup", controllers.SignUp)
 	user.Post("/login", controllers.LogIn)
-	user.Get("/logout", controllers.LogOut)
-	user.Put("/update-user", controllers.UpdateAccount)
-	user.Put("/update-photo", controllers.UpdatePhoto)
+	user.Get("/logout", middleware.TokenControl(), controllers.LogOut)
+	user.Put("/update-user", middleware.TokenControl(), controllers.UpdateAccount)
+	user.Put("/update-photo", middleware.TokenControl(), controllers.UpdatePhoto)
 	user.Put("/change-password", middleware.TokenControl(), controllers.ChangePassword)
-	user.Delete("/delete-account/", controllers.DeleteAccount)
-	user.Get("/:id", controllers.GetUserByID)
+	user.Delete("/delete-account/", middleware.TokenControl(), controllers.DeleteAccount)
+	user.Get("/:id", middleware.TokenControl(), controllers.GetUserByID)
 }

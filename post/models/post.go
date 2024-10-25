@@ -1,11 +1,7 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
 
 type Post struct {
-	gorm.Model
 	PostID       int      `json:"postid" gorm:"primaryKey;autoIncrement"`
 	User         User     `gorm:"foreignKey:UserID"`
 	UserID       int      `json:"userid"`
