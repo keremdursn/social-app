@@ -15,6 +15,6 @@ func Post(app *fiber.App) {
 	post.Delete("/delete/post/:id", middleware.TokenControl(), controllers.DeletePost)
 	post.Get("/getallpost", controllers.GetAllPost)
 	post.Get("getpostbyid", middleware.TokenControl(), controllers.GetPostByUserID)
-	post.Post("/like-post", middleware.TokenControl(), controllers.LikePost)
-	post.Post("/get-back-like", middleware.TokenControl(), controllers.GetBackLike)
+	post.Post("/like-post/:id", middleware.TokenControl(), controllers.LikePost)
+	post.Post("/get-back-like/:id", middleware.TokenControl(), controllers.GetBackLike)
 }
