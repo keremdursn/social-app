@@ -2,15 +2,13 @@ package controllers
 
 import (
 	"post/database"
-	"post/middleware"
 	"post/models"
-
 	"github.com/gofiber/fiber/v2"
 )
 
 func Comment(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
@@ -22,7 +20,7 @@ func Comment(c *fiber.Ctx) error {
 	}
 	//Postu bul getir
 	var post models.Post
-	err = db.Where("id = ?", comment.PostID).First(&post).Error
+	err := db.Where("id = ?", comment.PostID).First(&post).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Post not found"})
 	}
@@ -42,8 +40,8 @@ func Comment(c *fiber.Ctx) error {
 }
 
 func DeleteComment(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
@@ -52,7 +50,7 @@ func DeleteComment(c *fiber.Ctx) error {
 
 	var comment models.Comment
 
-	err = database.DB.Db.Where("id = ? AND user_id = ?", commentID, user.ID).First(&comment).Error
+	err := database.DB.Db.Where("id = ? AND user_id = ?", commentID, user.ID).First(&comment).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Comment not found or not authorized to delete"})
 	}
@@ -65,8 +63,8 @@ func DeleteComment(c *fiber.Ctx) error {
 }
 
 func LikeCommand(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
@@ -82,7 +80,7 @@ func LikeCommand(c *fiber.Ctx) error {
 
 	// Commenti bul getir
 	var comment models.Comment
-	err = db.First(&comment, commentID).Error
+	err := db.First(&comment, commentID).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Comment not found"})
 	}
@@ -113,8 +111,8 @@ func LikeCommand(c *fiber.Ctx) error {
 }
 
 func GetBackLikeCommand(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
@@ -129,7 +127,7 @@ func GetBackLikeCommand(c *fiber.Ctx) error {
 
 	//Commenti bul
 	var comment models.Comment
-	err = db.Where("comment_id = ? ", commentID).First(&comment).Error
+	err := db.Where("comment_id = ? ", commentID).First(&comment).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Comment not found"})
 	}
@@ -157,8 +155,8 @@ func GetBackLikeCommand(c *fiber.Ctx) error {
 }
 
 func AnswerComment(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
@@ -171,7 +169,7 @@ func AnswerComment(c *fiber.Ctx) error {
 
 	//yorumu bul
 	var comment models.Comment
-	err = db.Where("comment_id = ? ", answerComment.CommentID).First(&comment).Error
+	err := db.Where("comment_id = ? ", answerComment.CommentID).First(&comment).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Comment not found"})
 	}
@@ -188,9 +186,9 @@ func AnswerComment(c *fiber.Ctx) error {
 }
 
 func GetAllCommentsByPostID(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
-		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
 
@@ -199,7 +197,7 @@ func GetAllCommentsByPostID(c *fiber.Ctx) error {
 
 	// Belirtilen post ID'ye göre tüm yorumları veritabanından alıyoruz
 	var comments []models.Comment
-	err = db.Where("post_id = ?", postID).Preload("User").Order("created_at DESC").Find(&comments).Error
+	err := db.Where("post_id = ?", postID).Preload("User").Order("created_at DESC").Find(&comments).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to fetch comments"})
 	}
@@ -213,9 +211,9 @@ func GetAllCommentsByPostID(c *fiber.Ctx) error {
 
 // delete answer eklenecek
 func DeleteAnswer(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
-		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
 
@@ -223,7 +221,7 @@ func DeleteAnswer(c *fiber.Ctx) error {
 
 	var answer models.AnswerComment
 
-	err = db.Where("answer_id = ? AND user_id = ?", answerID, user.ID).Error
+	err := db.Where("answer_id = ? AND user_id = ?", answerID, user.ID).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Answer not found or not authorized to delete"})
 	}

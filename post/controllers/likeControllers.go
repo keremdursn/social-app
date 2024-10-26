@@ -2,16 +2,15 @@ package controllers
 
 import (
 	"post/database"
-	"post/middleware"
 	"post/models"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func LikePost(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
-		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
 	db := database.DB.Db
@@ -27,7 +26,7 @@ func LikePost(c *fiber.Ctx) error {
 
 	// Postu bul getir
 	var post models.Post
-	err = db.First(&post, postID).Error
+	err := db.First(&post, postID).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Post not found"})
 	}
@@ -56,8 +55,8 @@ func LikePost(c *fiber.Ctx) error {
 }
 
 func GetBackLike(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
@@ -73,7 +72,7 @@ func GetBackLike(c *fiber.Ctx) error {
 
 	//Postu bul
 	var post models.Post
-	err = db.Where("id = ?", postID).First(&post).Error
+	err := db.Where("id = ?", postID).First(&post).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Post not found"})
 	}

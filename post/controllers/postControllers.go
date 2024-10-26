@@ -2,18 +2,15 @@ package controllers
 
 import (
 	"post/database"
-	"post/middleware"
 	"post/models"
 	"io"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-//TODO: , getallpost, getuserspost
-
 func CreatePost(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
@@ -72,8 +69,8 @@ func CreatePost(c *fiber.Ctx) error {
 }
 
 func UpdatePost(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
@@ -94,7 +91,7 @@ func UpdatePost(c *fiber.Ctx) error {
 
 	// Eski resimleri sil
 	if len(oldImageIDs) > 0 {
-		err = database.DeleteFromCloudinary(oldImageIDs)
+		err := database.DeleteFromCloudinary(oldImageIDs)
 		if err != nil {
 			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to delete old images from Cloudinary"})
 		}
@@ -147,8 +144,8 @@ func UpdatePost(c *fiber.Ctx) error {
 }
 
 func DeletePost(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 	db := database.DB.Db
@@ -156,7 +153,7 @@ func DeletePost(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var post models.Post
 
-	err = db.Where("id = ?", id).First(&post).Error
+	err := db.Where("id = ?", id).First(&post).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"Status": "Error", "Message": "Post not found"})
 	}
@@ -186,15 +183,15 @@ func GetAllPost(c *fiber.Ctx) error {
 }
 
 func GetPostByUserID(c *fiber.Ctx) error {
-	user, err := middleware.TokenControl(c)
-	if err != nil {
+	user, ok := c.Locals("user").(models.User)
+	if !ok {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 	}
 
 	db := database.DB.Db
 	var posts []models.Post
 
-	err = db.Preload("User").Where("user_id = ? AND is_active = ?", user.ID, true).Order("id DESC").Find(&posts).Error
+	err := db.Preload("User").Where("user_id = ? AND is_active = ?", user.ID, true).Order("id DESC").Find(&posts).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to get posts"})
 	}
