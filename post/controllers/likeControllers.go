@@ -17,19 +17,17 @@ func LikePost(c *fiber.Ctx) error {
 
 	// Bodyden post verilerini al
 	var likePost models.LikePost
-	if err := c.BodyParser(&likePost); err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
-	}
-
-	postID := likePost.PostID
-	userID := user.ID
+	var post models.Post
 
 	// Postu bul getir
-	var post models.Post
-	err := db.First(&post, postID).Error
+	id := c.Params("id")
+	err := db.Where("id = ?",id).First(&post).Error
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "fail", "message": "Post not found"})
 	}
+
+	postID := id
+	userID := user.ID
 
 	// Like'ın daha önce yapılıp yapılmadığını kontrol et
 	var controlLike models.LikePost
@@ -40,6 +38,7 @@ func LikePost(c *fiber.Ctx) error {
 
 	// Like'ı veritabanına kaydet
 	likePost.UserID = user.ID
+	likePost.PostID = post.PostID
 	err = db.Create(&likePost).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to like post"})

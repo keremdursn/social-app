@@ -79,7 +79,7 @@ func UpdatePost(c *fiber.Ctx) error {
 	var post models.Post
 
 	// Mevcut post'u veritabanından al
-	if err := database.DB.Db.First(&post, postID).Error; err != nil {
+	if err := db.First(&post, postID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"Status": "Error", "Message": "Post not found"})
 	}
 
@@ -189,6 +189,7 @@ func GetPostByUserID(c *fiber.Ctx) error {
 	}
 
 	db := database.DB.Db
+
 	var posts []models.Post
 
 	err := db.Preload("User").Where("user_id = ? AND is_active = ?", user.ID, true).Order("id DESC").Find(&posts).Error
